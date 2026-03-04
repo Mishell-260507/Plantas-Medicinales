@@ -23,10 +23,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.plantasmedicinales.ui.PlantViewModel
 import com.example.plantasmedicinales.ui.theme.PlantasMedicinalesTheme
 
 @Composable
-fun ProfileScreen(onLogout: () -> Unit = {}) {
+fun ProfileScreen(viewModel: PlantViewModel, onLogout: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -35,7 +36,7 @@ fun ProfileScreen(onLogout: () -> Unit = {}) {
     ) {
         Spacer(modifier = Modifier.height(32.dp))
         
-        // Profile Image / Avatar
+        // Perfil Avatar
         Box(
             modifier = Modifier
                 .size(100.dp)
@@ -53,28 +54,29 @@ fun ProfileScreen(onLogout: () -> Unit = {}) {
         
         Spacer(modifier = Modifier.height(16.dp))
         
+        // DATOS REALES DEL VIEWMODEL
         Text(
-            text = "Usuario Bosque",
+            text = viewModel.userName,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF1B5E20)
         )
         Text(
-            text = "usuario@bosque.com",
+            text = viewModel.userEmail,
             style = MaterialTheme.typography.bodyMedium,
             color = Color.Gray
         )
         
         Spacer(modifier = Modifier.height(32.dp))
         
-        // Settings Options
+        // Opciones
         ProfileOption(icon = Icons.Default.Edit, title = "Mis Datos")
         ProfileOption(icon = Icons.Default.Notifications, title = "Notificaciones")
         ProfileOption(icon = Icons.Default.Security, title = "Privacidad y Seguridad")
         
         Spacer(modifier = Modifier.weight(1f))
         
-        // Logout Button
+        // Cerrar Sesión
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -137,13 +139,5 @@ fun ProfileOption(icon: ImageVector, title: String) {
                 tint = Color.LightGray
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ProfileScreenPreview() {
-    PlantasMedicinalesTheme {
-        ProfileScreen()
     }
 }

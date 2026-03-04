@@ -14,17 +14,19 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.plantasmedicinales.data.Plant
 import com.example.plantasmedicinales.data.PlantRepository
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 private val Context.dataStore by preferencesDataStore(name = "plantas_data")
 
 class PlantViewModel(application: Application) : AndroidViewModel(application) {
-    // Estado de plantas guardadas
     private val _savedPlantNames = mutableStateListOf<String>()
     val savedPlantNames: List<String> = _savedPlantNames
 
-    // Estado del usuario
+    // Usamos variables observables directas para el usuario
     var userName by mutableStateOf("Usuario")
     var userEmail by mutableStateOf("")
 
@@ -33,17 +35,18 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
     private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
 
     init {
-        // Cargar todos los datos guardados al iniciar la app
+        loadData()
+    }
+
+    private fun loadData() {
         viewModelScope.launch {
-            getApplication<Application>().dataStore.data.collect { preferences ->
-                // Cargar Plantas
+            getApplication<Application>().dataStore.data.collectLatest { preferences ->
+                userName = preferences[USER_NAME_KEY] ?: "Explorador"
+                userEmail = preferences[USER_EMAIL_KEY] ?: "sin correo"
+                
                 val plants = preferences[SAVED_PLANTS_KEY] ?: emptySet()
                 _savedPlantNames.clear()
                 _savedPlantNames.addAll(plants)
-
-                // Cargar Usuario
-                userName = preferences[USER_NAME_KEY] ?: "Explorador"
-                userEmail = preferences[USER_EMAIL_KEY] ?: ""
             }
         }
     }
@@ -54,6 +57,9 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
                 preferences[USER_NAME_KEY] = name
                 preferences[USER_EMAIL_KEY] = email
             }
+            // Forzamos la actualización inmediata del estado local
+            userName = name
+            userEmail = email
         }
     }
 
@@ -78,6 +84,8 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
     fun logout() {
         viewModelScope.launch {
             getApplication<Application>().dataStore.edit { it.clear() }
+            userName = "Explorador"
+            userEmail = ""
         }
     }
 }

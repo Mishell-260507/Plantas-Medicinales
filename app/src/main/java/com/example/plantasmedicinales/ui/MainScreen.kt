@@ -100,7 +100,7 @@ fun MainScreen(
             composable(BottomBarScreen.Inicio.route) { HomeScreen(onPlantClick = onPlantClick) }
             composable(BottomBarScreen.Buscar.route) { SearchScreen(onPlantClick = onPlantClick) }
             composable(BottomBarScreen.Botica.route) { MyBoticaScreen(viewModel = viewModel, onPlantClick = onPlantClick) }
-            composable(BottomBarScreen.Perfil.route) { ProfileScreen(onLogout = onLogout) }
+            composable(BottomBarScreen.Perfil.route) { ProfileScreen(viewModel = viewModel, onLogout = onLogout) }
         }
     }
 }

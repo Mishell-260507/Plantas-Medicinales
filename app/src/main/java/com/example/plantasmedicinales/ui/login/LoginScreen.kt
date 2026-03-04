@@ -18,11 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.plantasmedicinales.ui.PlantViewModel
-import com.example.plantasmedicinales.ui.theme.PlantasMedicinalesTheme
 
 @Composable
 fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
@@ -92,7 +90,6 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
                     
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // CAMPO NOMBRE
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
@@ -109,7 +106,6 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // CAMPO CORREO
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
