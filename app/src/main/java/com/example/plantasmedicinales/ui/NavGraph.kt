@@ -1,6 +1,7 @@
 package com.example.plantasmedicinales.ui
 
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,23 +20,31 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun NavGraph(navController: NavHostController) {
+    // Inicializamos el ViewModel aquí para compartirlo entre pantallas
+    val plantViewModel: PlantViewModel = viewModel()
+
     NavHost(
         navController = navController,
         startDestination = Screen.Login.route
     ) {
         composable(Screen.Login.route) {
-            LoginScreen(onLoginSuccess = {
-                navController.navigate(Screen.Main.route) {
-                    popUpTo(Screen.Login.route) { inclusive = true }
+            LoginScreen(
+                viewModel = plantViewModel,
+                onLoginSuccess = {
+                    navController.navigate(Screen.Main.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
                 }
-            })
+            )
         }
         composable(Screen.Main.route) {
             MainScreen(
+                viewModel = plantViewModel,
                 onPlantClick = { plantName ->
                     navController.navigate(Screen.Detail.createRoute(plantName))
                 },
                 onLogout = {
+                    plantViewModel.logout()
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Main.route) { inclusive = true }
                     }
@@ -47,9 +56,13 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument("plantName") { type = NavType.StringType })
         ) { backStackEntry ->
             val plantName = backStackEntry.arguments?.getString("plantName") ?: ""
-            PlantDetailScreen(plantName = plantName, onBack = {
-                navController.popBackStack()
-            })
+            PlantDetailScreen(
+                plantName = plantName,
+                viewModel = plantViewModel,
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
