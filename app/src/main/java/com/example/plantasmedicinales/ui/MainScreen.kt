@@ -24,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.plantasmedicinales.ui.home.HomeScreen
 import com.example.plantasmedicinales.ui.mybotica.MyBoticaScreen
 import com.example.plantasmedicinales.ui.profile.ProfileScreen
+import com.example.plantasmedicinales.ui.search.SearchScreen
 
 sealed class BottomBarScreen(
     val route: String,
@@ -38,7 +39,11 @@ sealed class BottomBarScreen(
 }
 
 @Composable
-fun MainScreen(onPlantClick: (String) -> Unit, onLogout: () -> Unit) {
+fun MainScreen(
+    viewModel: PlantViewModel,
+    onPlantClick: (String) -> Unit,
+    onLogout: () -> Unit
+) {
     val navController = rememberNavController()
     val screens = listOf(
         BottomBarScreen.Inicio,
@@ -93,8 +98,8 @@ fun MainScreen(onPlantClick: (String) -> Unit, onLogout: () -> Unit) {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(BottomBarScreen.Inicio.route) { HomeScreen(onPlantClick = onPlantClick) }
-            composable(BottomBarScreen.Buscar.route) { /* TODO */ }
-            composable(BottomBarScreen.Botica.route) { MyBoticaScreen(onPlantClick = onPlantClick) }
+            composable(BottomBarScreen.Buscar.route) { SearchScreen(onPlantClick = onPlantClick) }
+            composable(BottomBarScreen.Botica.route) { MyBoticaScreen(viewModel = viewModel, onPlantClick = onPlantClick) }
             composable(BottomBarScreen.Perfil.route) { ProfileScreen(onLogout = onLogout) }
         }
     }

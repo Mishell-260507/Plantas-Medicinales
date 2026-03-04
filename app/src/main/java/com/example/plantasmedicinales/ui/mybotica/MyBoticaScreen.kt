@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,19 +23,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.plantasmedicinales.R
+import coil.compose.AsyncImage
+import com.example.plantasmedicinales.data.Plant
+import com.example.plantasmedicinales.ui.PlantViewModel
 import com.example.plantasmedicinales.ui.theme.PlantasMedicinalesTheme
 
-data class SavedPlant(val name: String, val tags: List<String>, val imageRes: Int, val bgColor: Color)
-
 @Composable
-fun MyBoticaScreen(onPlantClick: (String) -> Unit = {}) {
-    val savedPlants = listOf(
-        SavedPlant("Uña de Gato", listOf("Inflamación", "Inmune"), R.drawable.ic_launcher_background, Color(0xFFE8F5E9)),
-        SavedPlant("Sangre de Grado", listOf("Cicatrizante", "Ulceras"), R.drawable.ic_launcher_background, Color(0xFFFBE9E7)),
-        SavedPlant("Matico", listOf("Respiratorio", "Antiséptico"), R.drawable.ic_launcher_background, Color(0xFFE0F2F1)),
-        SavedPlant("Achiote", listOf("Próstata", "Antiinflamatorio"), R.drawable.ic_launcher_background, Color(0xFFF9FBE7))
-    )
+fun MyBoticaScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}) {
+    val savedPlants = viewModel.getSavedPlants()
 
     Column(
         modifier = Modifier
@@ -43,7 +39,17 @@ fun MyBoticaScreen(onPlantClick: (String) -> Unit = {}) {
     ) {
         BoticaHeader(plantCount = savedPlants.size)
         Spacer(modifier = Modifier.height(24.dp))
-        SavedPlantList(savedPlants, onPlantClick)
+        
+        if (savedPlants.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.FavoriteBorder, null, modifier = Modifier.size(64.dp), tint = Color.LightGray)
+                    Text("Aún no tienes plantas guardadas", color = Color.Gray)
+                }
+            }
+        } else {
+            SavedPlantList(savedPlants, onPlantClick)
+        }
     }
 }
 
@@ -57,7 +63,7 @@ fun BoticaHeader(plantCount: Int) {
         color = Color(0xFF1B5E20)
     )
     Text(
-        text = "Colección personal de remedios",
+        text = "Tu colección personal de medicina natural",
         style = MaterialTheme.typography.bodyMedium,
         color = Color.Gray
     )
@@ -85,7 +91,7 @@ fun BoticaChip(count: Int) {
 }
 
 @Composable
-fun SavedPlantList(plants: List<SavedPlant>, onPlantClick: (String) -> Unit) {
+fun SavedPlantList(plants: List<Plant>, onPlantClick: (String) -> Unit) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         items(plants) { plant ->
             SavedPlantItem(plant, onPlantClick)
@@ -94,21 +100,21 @@ fun SavedPlantList(plants: List<SavedPlant>, onPlantClick: (String) -> Unit) {
 }
 
 @Composable
-fun SavedPlantItem(plant: SavedPlant, onPlantClick: (String) -> Unit) {
+fun SavedPlantItem(plant: Plant, onPlantClick: (String) -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onPlantClick(plant.name) },
         shape = RoundedCornerShape(16.dp),
+        color = Color.White,
         shadowElevation = 2.dp
     ) {
         Row(
-            modifier = Modifier
-                .padding(12.dp),
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = plant.imageRes),
+            AsyncImage(
+                model = plant.imageUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .size(64.dp)
@@ -118,23 +124,10 @@ fun SavedPlantItem(plant: SavedPlant, onPlantClick: (String) -> Unit) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(plant.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    plant.tags.forEach { tag ->
-                        Text(tag, fontSize = 12.sp, color = Color.Gray)
-                    }
-                }
+                Text(plant.scientificName, fontSize = 12.sp, color = Color.Gray, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
             }
             Icon(Icons.Default.Bookmark, contentDescription = "Guardado", tint = Color(0xFF00C853))
             Icon(Icons.Default.ChevronRight, contentDescription = "Detalle", tint = Color.LightGray)
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MyBoticaScreenPreview() {
-    PlantasMedicinalesTheme {
-        MyBoticaScreen(onPlantClick = {})
     }
 }
