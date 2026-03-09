@@ -32,12 +32,13 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
+        // Fondo con colores claros
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFFE8F5E9), Color(0xFFC8E6C9), Color(0xFFA5D6A7))
+                        colors = listOf(Color(0xFFFFFFFF), Color(0xFFF1F8E9))
                     )
                 )
         )
@@ -49,6 +50,7 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // Logo y Nombre con contraste alto
             Icon(
                 imageVector = Icons.Default.Eco,
                 contentDescription = null,
@@ -65,17 +67,18 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
                 text = "Tu farmacia viviente en la palma de tu mano",
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
-                color = Color(0xFF2E7D32),
+                color = Color(0xFF33691E), // Verde oliva oscuro
                 modifier = Modifier.padding(top = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
+            // Tarjeta del Formulario
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                color = Color.White.copy(alpha = 0.9f),
-                shadowElevation = 8.dp
+                color = Color.White,
+                shadowElevation = 6.dp
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -90,22 +93,27 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
                     
                     Spacer(modifier = Modifier.height(24.dp))
 
+                    // Campo Nombre con texto oscuro
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
                         label = { Text("Tu nombre") },
                         placeholder = { Text("Ej: Mishel") },
-                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color.Gray) },
+                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF1B5E20)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF1B5E20),
-                            unfocusedBorderColor = Color.LightGray
+                            unfocusedBorderColor = Color(0xFFC8E6C9),
+                            focusedLabelColor = Color(0xFF1B5E20),
+                            focusedTextColor = Color.Black, // Texto negro al escribir
+                            unfocusedTextColor = Color.Black
                         )
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Campo Correo con texto oscuro
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
@@ -114,12 +122,16 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF1B5E20),
-                            unfocusedBorderColor = Color.LightGray
+                            unfocusedBorderColor = Color(0xFFC8E6C9),
+                            focusedLabelColor = Color(0xFF1B5E20),
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
                         )
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Campo Contraseña con texto oscuro
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
@@ -135,12 +147,16 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
                         },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF1B5E20),
-                            unfocusedBorderColor = Color.LightGray
+                            unfocusedBorderColor = Color(0xFFC8E6C9),
+                            focusedLabelColor = Color(0xFF1B5E20),
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
                         )
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
+                    // BOTÓN con texto OSCURO para máxima visibilidad
                     Button(
                         onClick = { 
                             if (name.isNotBlank() && email.isNotBlank()) {
@@ -152,9 +168,14 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853))
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC34A)) // Verde claro brillante
                     ) {
-                        Text("Iniciar Sesión", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Iniciar Sesión", 
+                            fontSize = 18.sp, 
+                            fontWeight = FontWeight.Bold, 
+                            color = Color(0xFF1B5E20) // Letras verde oscuro sobre fondo verde claro
+                        )
                     }
                 }
             }

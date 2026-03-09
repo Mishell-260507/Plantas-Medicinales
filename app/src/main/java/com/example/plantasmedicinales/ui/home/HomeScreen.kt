@@ -19,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -28,15 +29,16 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.plantasmedicinales.data.Plant
 import com.example.plantasmedicinales.data.PlantRepository
+import com.example.plantasmedicinales.ui.PlantViewModel
 import com.example.plantasmedicinales.ui.theme.PlantasMedicinalesTheme
 
 @Composable
-fun HomeScreen(onPlantClick: (String) -> Unit = {}) {
+fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}, onProfileClick: () -> Unit = {}) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Todas") }
     
     val categories = listOf("Todas", "Fiebre", "Estómago", "Piel", "Energía")
-    val allPlants = PlantRepository.allPlants
+    val allPlants = viewModel.allPlants
 
     val filteredPlants = allPlants.filter { plant ->
         val matchesSearch = plant.name.contains(searchQuery, ignoreCase = true) || 
@@ -51,9 +53,15 @@ fun HomeScreen(onPlantClick: (String) -> Unit = {}) {
             .fillMaxSize()
             .padding(horizontal = 24.dp)
     ) {
-        HomeHeader()
+        HomeHeader(onProfileClick)
         Spacer(modifier = Modifier.height(24.dp))
-        SearchBar(query = searchQuery, onQueryChange = { searchQuery = it })
+        
+        // BARRA DE BÚSQUEDA CON ALTO CONTRASTE
+        SearchBar(
+            query = searchQuery, 
+            onQueryChange = { searchQuery = it }
+        )
+        
         Spacer(modifier = Modifier.height(24.dp))
         CategoryList(
             categories = categories,
@@ -64,7 +72,7 @@ fun HomeScreen(onPlantClick: (String) -> Unit = {}) {
         
         if (filteredPlants.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "No se encontraron plantas", color = Color.Gray)
+                Text(text = "No se encontraron plantas", color = Color.DarkGray)
             }
         } else {
             PlantGrid(filteredPlants, onPlantClick)
@@ -73,18 +81,32 @@ fun HomeScreen(onPlantClick: (String) -> Unit = {}) {
 }
 
 @Composable
-fun HomeHeader() {
+fun HomeHeader(onProfileClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.Eco, "Logo", tint = Color(0xFF1B5E20), modifier = Modifier.size(32.dp))
-        Icon(Icons.Default.AccountCircle, "Profile", tint = Color.Gray, modifier = Modifier.size(40.dp))
+        Icon(
+            imageVector = Icons.Default.Eco,
+            contentDescription = "Logo",
+            tint = Color(0xFF1B5E20),
+            modifier = Modifier.size(32.dp)
+        )
+        IconButton(onClick = onProfileClick) {
+            Icon(
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = "Profile",
+                tint = Color(0xFF1B5E20), // Icono más oscuro
+                modifier = Modifier.size(40.dp)
+            )
+        }
     }
     Spacer(modifier = Modifier.height(16.dp))
     Text("El Bosque", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold, color = Color(0xFF1B5E20))
-    Text("Explora la farmacia viviente.", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+    Text("Explora la farmacia viviente.", style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray)
 }
 
 @Composable
@@ -93,15 +115,17 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
         value = query,
         onValueChange = onQueryChange,
         placeholder = { Text("Busca una dolencia o planta...", color = Color.Gray) },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF1B5E20)) },
         modifier = Modifier.fillMaxWidth().height(56.dp),
         singleLine = true,
         shape = RoundedCornerShape(28.dp),
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedContainerColor = Color(0xFFF5F5F5),
             focusedContainerColor = Color(0xFFF5F5F5),
-            unfocusedBorderColor = Color.Transparent,
-            focusedBorderColor = Color.Transparent
+            unfocusedBorderColor = Color(0xFFC8E6C9),
+            focusedBorderColor = Color(0xFF1B5E20),
+            focusedTextColor = Color.Black, // Texto negro al escribir
+            unfocusedTextColor = Color.Black
         )
     )
 }
@@ -119,8 +143,8 @@ fun CategoryList(categories: List<String>, selectedCategory: String, onCategoryC
                 Text(
                     text = category,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                    color = if (isSelected) Color.White else Color.Black,
-                    fontWeight = FontWeight.Medium
+                    color = if (isSelected) Color.White else Color(0xFF1B5E20), // Texto oscuro si no está seleccionado
+                    fontWeight = FontWeight.Bold
                 )
             }
         }

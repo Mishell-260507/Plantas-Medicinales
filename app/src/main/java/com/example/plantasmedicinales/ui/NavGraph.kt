@@ -20,12 +20,11 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun NavGraph(navController: NavHostController) {
-    // Inicializamos el ViewModel aquí para compartirlo entre pantallas
     val plantViewModel: PlantViewModel = viewModel()
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route
+        startDestination = Screen.Main.route // INICIA DIRECTAMENTE AQUÍ
     ) {
         composable(Screen.Login.route) {
             LoginScreen(
@@ -45,9 +44,12 @@ fun NavGraph(navController: NavHostController) {
                 },
                 onLogout = {
                     plantViewModel.logout()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Main.route) { inclusive = true }
-                    }
+                    // Ahora al cerrar sesión simplemente te lleva al login sin bloquear la app
+                    navController.navigate(Screen.Login.route)
+                },
+                onProfileClick = {
+                    // Acción para ir al perfil o login desde el icono
+                    navController.navigate(Screen.Login.route)
                 }
             )
         }

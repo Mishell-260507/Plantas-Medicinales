@@ -5,11 +5,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Eco
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -24,7 +22,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.plantasmedicinales.ui.home.HomeScreen
 import com.example.plantasmedicinales.ui.mybotica.MyBoticaScreen
 import com.example.plantasmedicinales.ui.profile.ProfileScreen
-import com.example.plantasmedicinales.ui.search.SearchScreen
 
 sealed class BottomBarScreen(
     val route: String,
@@ -33,7 +30,6 @@ sealed class BottomBarScreen(
     val unselectedIcon: ImageVector
 ) {
     object Inicio : BottomBarScreen("inicio", "Inicio", Icons.Filled.Eco, Icons.Outlined.Eco)
-    object Buscar : BottomBarScreen("buscar", "Buscar", Icons.Filled.Search, Icons.Outlined.Search)
     object Botica : BottomBarScreen("botica", "Mi Botica", Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder)
     object Perfil : BottomBarScreen("perfil", "Perfil", Icons.Filled.Person, Icons.Outlined.Person)
 }
@@ -42,12 +38,12 @@ sealed class BottomBarScreen(
 fun MainScreen(
     viewModel: PlantViewModel,
     onPlantClick: (String) -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onProfileClick: () -> Unit
 ) {
     val navController = rememberNavController()
     val screens = listOf(
         BottomBarScreen.Inicio,
-        BottomBarScreen.Buscar,
         BottomBarScreen.Botica,
         BottomBarScreen.Perfil
     )
@@ -97,8 +93,13 @@ fun MainScreen(
             startDestination = BottomBarScreen.Inicio.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(BottomBarScreen.Inicio.route) { HomeScreen(onPlantClick = onPlantClick) }
-            composable(BottomBarScreen.Buscar.route) { SearchScreen(onPlantClick = onPlantClick) }
+            composable(BottomBarScreen.Inicio.route) { 
+                HomeScreen(
+                    viewModel = viewModel,
+                    onPlantClick = onPlantClick,
+                    onProfileClick = onProfileClick
+                ) 
+            }
             composable(BottomBarScreen.Botica.route) { MyBoticaScreen(viewModel = viewModel, onPlantClick = onPlantClick) }
             composable(BottomBarScreen.Perfil.route) { ProfileScreen(viewModel = viewModel, onLogout = onLogout) }
         }
