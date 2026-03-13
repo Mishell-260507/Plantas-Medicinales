@@ -1,5 +1,6 @@
 package com.example.plantasmedicinales.ui.login
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -28,11 +30,13 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Fondo con colores claros
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -50,7 +54,6 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Logo y Nombre con contraste alto
             Icon(
                 imageVector = Icons.Default.Eco,
                 contentDescription = null,
@@ -67,13 +70,12 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
                 text = "Tu farmacia viviente en la palma de tu mano",
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
-                color = Color(0xFF33691E), // Verde oliva oscuro
+                color = Color(0xFF33691E),
                 modifier = Modifier.padding(top = 8.dp)
             )
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // Tarjeta del Formulario
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
@@ -93,7 +95,6 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
                     
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Campo Nombre con texto oscuro
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
@@ -102,24 +103,7 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
                         leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF1B5E20)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF1B5E20),
-                            unfocusedBorderColor = Color(0xFFC8E6C9),
-                            focusedLabelColor = Color(0xFF1B5E20),
-                            focusedTextColor = Color.Black, // Texto negro al escribir
-                            unfocusedTextColor = Color.Black
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Campo Correo con texto oscuro
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = { Text("Correo electrónico") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        enabled = !isLoading,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF1B5E20),
                             unfocusedBorderColor = Color(0xFFC8E6C9),
@@ -131,13 +115,31 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Campo Contraseña con texto oscuro
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Correo electrónico") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        enabled = !isLoading,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF1B5E20),
+                            unfocusedBorderColor = Color(0xFFC8E6C9),
+                            focusedLabelColor = Color(0xFF1B5E20),
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
                         label = { Text("Contraseña") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
+                        enabled = !isLoading,
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
@@ -156,26 +158,49 @@ fun LoginScreen(viewModel: PlantViewModel, onLoginSuccess: () -> Unit = {}) {
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // BOTÓN con texto OSCURO para máxima visibilidad
                     Button(
                         onClick = { 
-                            if (name.isNotBlank() && email.isNotBlank()) {
-                                viewModel.saveUser(name, email)
-                                onLoginSuccess() 
+                            val cleanEmail = email.trim()
+                            if (name.isNotBlank() && cleanEmail.isNotBlank() && password.length >= 6) {
+                                isLoading = true
+                                viewModel.signUpAndSaveUser(
+                                    name = name, 
+                                    email = cleanEmail, 
+                                    pass = password,
+                                    onSuccess = {
+                                        isLoading = false
+                                        onLoginSuccess()
+                                    },
+                                    onError = { errorMsg ->
+                                        isLoading = false
+                                        Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+                                    }
+                                )
+                            } else {
+                                if (password.length < 6) {
+                                    Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Por favor, completa todos los campos", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC34A)) // Verde claro brillante
+                        enabled = !isLoading,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC34A))
                     ) {
-                        Text(
-                            text = "Iniciar Sesión", 
-                            fontSize = 18.sp, 
-                            fontWeight = FontWeight.Bold, 
-                            color = Color(0xFF1B5E20) // Letras verde oscuro sobre fondo verde claro
-                        )
+                        if (isLoading) {
+                            CircularProgressIndicator(color = Color(0xFF1B5E20), modifier = Modifier.size(24.dp))
+                        } else {
+                            Text(
+                                text = "Registrar e Iniciar", 
+                                fontSize = 18.sp, 
+                                fontWeight = FontWeight.Bold, 
+                                color = Color(0xFF1B5E20)
+                            )
+                        }
                     }
                 }
             }

@@ -17,13 +17,20 @@ import com.example.plantasmedicinales.data.Plant
 import com.example.plantasmedicinales.data.PlantRepository
 import com.example.plantasmedicinales.network.RetrofitInstance
 import com.example.plantasmedicinales.network.toDomainModel
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 private val Context.dataStore by preferencesDataStore(name = "plantas_data")
 
 class PlantViewModel(application: Application) : AndroidViewModel(application) {
     
+    private val auth = Firebase.auth
+    private val db = Firebase.firestore
+
     // Lista dinámica de plantas (API + Local)
     private val _allPlants = mutableStateListOf<Plant>()
     val allPlants: List<Plant> = _allPlants
@@ -33,21 +40,16 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
 
     var userName by mutableStateOf("Explorador")
     var userEmail by mutableStateOf("")
-    var lastSearchQuery by mutableStateOf("") // Nueva variable para la última búsqueda
+    var lastSearchQuery by mutableStateOf("")
 
     private val SAVED_PLANTS_KEY = stringSetPreferencesKey("saved_plants_list")
     private val USER_NAME_KEY = stringPreferencesKey("user_name")
     private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
-    private val LAST_SEARCH_KEY = stringPreferencesKey("last_search") // Nueva clave para DataStore
+    private val LAST_SEARCH_KEY = stringPreferencesKey("last_search")
 
     init {
-        // 1. Cargar plantas locales por defecto para que la UI no esté vacía
         _allPlants.addAll(PlantRepository.allPlants)
-        
-        // 2. Intentar actualizar desde la API
         fetchPlantsFromApi()
-        
-        // 3. Cargar datos de usuario, favoritos y última búsqueda
         loadUserData()
     }
 
@@ -58,10 +60,9 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
                 if (apiPlants.isNotEmpty()) {
                     _allPlants.clear()
                     _allPlants.addAll(apiPlants.map { it.toDomainModel() })
-                    Log.d("PlantViewModel", "Datos cargados desde la API con éxito")
                 }
             } catch (e: Exception) {
-                Log.e("PlantViewModel", "Error al conectar con la API: ${e.message}. Usando datos locales.")
+                Log.e("PlantViewModel", "Error al conectar con la API: ${e.message}")
             }
         }
     }
@@ -71,7 +72,7 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
             getApplication<Application>().dataStore.data.collectLatest { preferences ->
                 userName = preferences[USER_NAME_KEY] ?: "Explorador"
                 userEmail = preferences[USER_EMAIL_KEY] ?: ""
-                lastSearchQuery = preferences[LAST_SEARCH_KEY] ?: "" // Cargamos la última búsqueda
+                lastSearchQuery = preferences[LAST_SEARCH_KEY] ?: ""
                 
                 val plants = preferences[SAVED_PLANTS_KEY] ?: emptySet()
                 _savedPlantNames.clear()
@@ -88,6 +89,69 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
             }
             userName = name
             userEmail = email
+            
+            auth.currentUser?.uid?.let { uid ->
+                try {
+                    db.collection("users").document(uid).update(
+                        mapOf(
+                            "name" to name,
+                            "email" to email
+                        )
+                    ).await()
+                } catch (e: Exception) {
+                    Log.e("FirebaseUpdate", "Error al actualizar en Firestore: ${e.message}")
+                }
+            }
+        }
+    }
+
+    fun signUpAndSaveUser(
+        name: String, 
+        email: String, 
+        pass: String, 
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                // 1. Crear usuario en Firebase Authentication
+                val result = auth.createUserWithEmailAndPassword(email, pass).await()
+                val uid = result.user?.uid ?: throw Exception("No se pudo obtener el ID de usuario")
+
+                // 2. Intentar guardar en Firestore, pero no bloquear el inicio si falla
+                try {
+                    val userMap = hashMapOf(
+                        "uid" to uid,
+                        "name" to name,
+                        "email" to email,
+                        "createdAt" to System.currentTimeMillis()
+                    )
+                    db.collection("users").document(uid).set(userMap).await()
+                } catch (e: Exception) {
+                    Log.e("FirebaseFirestore", "Error al guardar perfil, pero el usuario se creó: ${e.message}")
+                    // No lanzamos error aquí para permitir el inicio de sesión local
+                }
+
+                // 3. Guardar localmente en DataStore
+                getApplication<Application>().dataStore.edit { preferences ->
+                    preferences[USER_NAME_KEY] = name
+                    preferences[USER_EMAIL_KEY] = email
+                }
+                
+                userName = name
+                userEmail = email
+                onSuccess()
+
+            } catch (e: Exception) {
+                val errorMsg = when {
+                    e.message?.contains("email address is badly formatted") == true -> "Correo mal escrito"
+                    e.message?.contains("already in use") == true -> "Este correo ya está registrado"
+                    e.message?.contains("network error") == true -> "Error de red, revisa tu internet"
+                    else -> "Error: ${e.localizedMessage}"
+                }
+                Log.e("FirebaseRegister", "Error: ${e.message}")
+                onError(errorMsg)
+            }
         }
     }
 
@@ -121,6 +185,7 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
 
     fun logout() {
         viewModelScope.launch {
+            auth.signOut()
             getApplication<Application>().dataStore.edit { it.clear() }
             userName = "Explorador"
             userEmail = ""
