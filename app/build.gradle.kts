@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.plantasmedicinales"
+    namespace = "com.iiap.plantasmedicinales"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.plantasmedicinales"
+        applicationId = "com.iiap.plantasmedicinales"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -18,9 +18,18 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    signingConfigs {
+        create("release") {
+            storeFile = file("plantasmedicinales.keystore")
+            storePassword = "plantas123"
+            keyAlias = "plantasmedicinales"
+            keyPassword = "plantas123"
+        }
+    }
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -73,3 +82,4 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
+
