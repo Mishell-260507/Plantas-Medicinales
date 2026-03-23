@@ -42,7 +42,7 @@ Para ejecutar este proyecto localmente, sigue estos pasos:
 
 1. **Clonar el repositorio**:
    ```bash
-   git clone https://github.com/tu-usuario/Plantas-Medicinales.git
+   git clone https://github.com/Mishell-260507/Plantas-Medicinales.git
    ```
 2. **Configuración de Firebase**:
    - Crea un proyecto en la [Consola de Firebase](https://console.firebase.google.com/).
@@ -54,9 +54,4 @@ Para ejecutar este proyecto localmente, sigue estos pasos:
 4. **Ejecutar**:
    - Selecciona un emulador o dispositivo físico y presiona "Run".
 
-## 📄 Licencia
-
-Este proyecto está bajo la licencia [indicar licencia, ej: MIT]. Ver el archivo `LICENSE` para más detalles.
-
----
-Desarrollado con ❤️ para la preservación del conocimiento ancestral.
+Desarrollado para la preservación y difusión del conocimiento.
