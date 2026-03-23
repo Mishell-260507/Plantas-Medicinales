@@ -1,6 +1,6 @@
 # Plantas Medicinales
 
-Una aplicación móvil Android moderna diseñada para la consulta y gestión de información sobre plantas medicinales, desarrollada por el **IIAP (Instituto de Investigaciones de la Amazonía Peruana)**.
+Una aplicación móvil Android moderna diseñada para la consulta y gestión de información sobre plantas medicinales.
 
 ## 🌿 Características Principales
 
