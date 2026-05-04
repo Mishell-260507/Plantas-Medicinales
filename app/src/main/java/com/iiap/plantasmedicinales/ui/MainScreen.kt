@@ -96,8 +96,7 @@ fun MainScreen(
             composable(BottomBarScreen.Inicio.route) { 
                 HomeScreen(
                     viewModel = viewModel,
-                    onPlantClick = onPlantClick,
-                    onProfileClick = onProfileClick
+                    onPlantClick = onPlantClick
                 ) 
             }
             composable(BottomBarScreen.Botica.route) { MyBoticaScreen(viewModel = viewModel, onPlantClick = onPlantClick) }
@@ -105,4 +104,3 @@ fun MainScreen(
         }
     }
 }
-

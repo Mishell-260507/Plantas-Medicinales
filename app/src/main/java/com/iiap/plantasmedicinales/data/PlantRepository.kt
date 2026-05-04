@@ -8,7 +8,11 @@ data class Plant(
     val description: String,
     val benefits: List<String>,
     val preparation: String,
-    val ailments: List<String>
+    val ailments: List<String>,
+    val habitat: String = "No especificado",
+    val contraindications: String = "Sin contraindicaciones registradas",
+    val toxicityLevel: String = "Bajo",
+    val conservationStatus: String = "Preocupación menor"
 )
 
 object PlantRepository {
@@ -64,7 +68,7 @@ object PlantRepository {
         Plant("Flor de Arena", "Tiquilia paronychioides", "https://tse4.mm.bing.net/th/id/OIP.plUQQtJsLAADVyJqLVXQHwHaFx?rs=1&pid=ImgDetMain&o=7&rm=3", "Estómago", "Limpia riñones, elimina ácido úrico y reduce arenillas renales.", listOf("Depurador renal", "Antiuricémico"), "Hervir 5 min. Beber frío.", listOf("Riñones", "Gota")),
         Plant("Culantrillo", "Adiantum capillus-veneris", "https://www.jardineriaon.com/wp-content/uploads/2018/06/culantrillo-de-pozo-830x622.jpg", "Fiebre", "Helecho que suaviza la garganta y detiene la caída del cabello.", listOf("Expectorante", "Tónico capilar"), "Infundir 8 min. Endulzar con miel.", listOf("Tos", "Bronquitis")),
         Plant("Manayupa", "Desmodium molliculum", "https://tse1.mm.bing.net/th/id/OIP.wgLFBBYgajh6fuGQmuJDUAHaE8?rs=1&pid=ImgDetMain&o=7&rm=3", "Estómago", "Desintoxicante total que limpia sangre, hígado y riñones.", listOf("Depurador", "Antialérgico"), "Hervir 15 min. Tomar como agua.", listOf("Intoxicación", "Alergias")),
-        Plant("Ortiga Blanca", "Lamium album", "https://media.istockphoto.com/id/1469961568/es/foto/ortiga-blanca-hojas-y-flores-la-ortiga-blanca-es-una-planta-herb%C3%A1cea-perenne-ortiga-sorda.jpg?s=170667a&w=0&k=20&c=cIOtMBZGaDRU91_jFA7hsN_KlJxDU42iS6Yv_lDiRiU=", "Fiebre", "Protectora femenina que regula el flujo y calma inflamación pélvica.", listOf("Antiséptico", "Hemostático"), "Infundir 10 min. Uso interno y externo.", listOf("Leucorrea", "Regla")),
+        Plant("Ortiga Blanca", "Lamium album", "https://media.istockphoto.com/id/1469961568/es/foto/ortiga-blanca-hojas-y-flores-la-ortiga-blanca-es-una-planta-herb%C3%A1cea-perenne-ortiga-sorda.jpg?s=170667a&w=0&k=20&c=cIOtMBZGaDRU91_jFA7hsN_KlJxDU42iS6Yv_lDiRiU=", "Fiebre", "Protectora femenina que regula el flujo y calma inflamación pélvica.", listOf("Antiséptico", "Hemostático"), "Infundir 10 min. Uso interno and externo.", listOf("Leucorrea", "Regla")),
         Plant("Parietaria", "Parietaria officinalis", "https://tse4.mm.bing.net/th/id/OIP.diTns6K8ZMhRTEyx9_Oc7AHaKA?rs=1&pid=ImgDetMain&o=7&rm=3", "Estómago", "Rompepiedras natural que desinflama las vías urinarias.", listOf("Diurético", "Litontrítico"), "Reposar 10 min fuera de comidas.", listOf("Cálculos", "Cistitis")),
         Plant("Genciana", "Gentiana lutea", "https://ervanarium.com.br/wp-content/uploads/2018/11/gentian-3360029_1920.jpg", "Estómago", "Raíz amarga que despierta el apetito y tonifica cuerpos débiles.", listOf("Aperitivo", "Tónico"), "Hervir 5 min. Tomar antes de comer.", listOf("Anorexia", "Anemia")),
         Plant("Pasuchaca", "Geranium dielsianum", "https://solperunutrition.com/wp-content/uploads/2018/11/PASUCHACA.jpg", "Estómago", "Antidiabético andino que estabiliza la glucosa naturalmente.", listOf("Hipoglucemiante", "Purificador"), "Hervir 10 min y reposar 15 min.", listOf("Diabetes", "Glucosa")),
@@ -115,4 +119,3 @@ object PlantRepository {
         Plant("Escrofularia", "Scrophularia", "https://tse2.mm.bing.net/th/id/OIP.bvxxArCQI1PmuIfS1jxMzAHaFj?rs=1&pid=ImgDetMain&o=7&rm=3", "Piel", "Limpia ganglios inflamados y cura costras lácteas en bebés.", listOf("Depurativo", "Antiinflamatorio"), "Hervir 5 min y aplicar compresas.", listOf("Ganglios", "Costras"))
     )
 }
-

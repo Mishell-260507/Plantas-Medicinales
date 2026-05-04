@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Search
@@ -33,9 +34,8 @@ import com.iiap.plantasmedicinales.ui.PlantViewModel
 import com.iiap.plantasmedicinales.ui.theme.PlantasMedicinalesTheme
 
 @Composable
-fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}, onProfileClick: () -> Unit = {}) {
+fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}) {
     var searchQuery by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Todas") }
     
     val categories = listOf("Todas", "Fiebre", "Estómago", "Piel", "Energía")
     val allPlants = viewModel.allPlants
@@ -44,7 +44,7 @@ fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}, o
         val matchesSearch = plant.name.contains(searchQuery, ignoreCase = true) || 
                           plant.scientificName.contains(searchQuery, ignoreCase = true) ||
                           plant.ailments.any { it.contains(searchQuery, ignoreCase = true) }
-        val matchesCategory = selectedCategory == "Todas" || plant.category == selectedCategory
+        val matchesCategory = viewModel.selectedCategory == "Todas" || plant.category == viewModel.selectedCategory
         matchesSearch && matchesCategory
     }
 
@@ -53,7 +53,7 @@ fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}, o
             .fillMaxSize()
             .padding(horizontal = 24.dp)
     ) {
-        HomeHeader(onProfileClick)
+        HomeHeader(userName = viewModel.userName)
         Spacer(modifier = Modifier.height(24.dp))
         
         // BARRA DE BÚSQUEDA CON ALTO CONTRASTE
@@ -65,8 +65,8 @@ fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}, o
         Spacer(modifier = Modifier.height(24.dp))
         CategoryList(
             categories = categories,
-            selectedCategory = selectedCategory,
-            onCategoryClick = { selectedCategory = it }
+            selectedCategory = viewModel.selectedCategory,
+            onCategoryClick = { viewModel.selectedCategory = it }
         )
         Spacer(modifier = Modifier.height(24.dp))
         
@@ -75,18 +75,18 @@ fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}, o
                 Text(text = "No se encontraron plantas", color = Color.DarkGray)
             }
         } else {
-            PlantGrid(filteredPlants, onPlantClick)
+            PlantGrid(filteredPlants, onPlantClick, viewModel)
         }
     }
 }
 
 @Composable
-fun HomeHeader(onProfileClick: () -> Unit) {
+fun HomeHeader(userName: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -95,17 +95,9 @@ fun HomeHeader(onProfileClick: () -> Unit) {
             tint = Color(0xFF1B5E20),
             modifier = Modifier.size(32.dp)
         )
-        IconButton(onClick = onProfileClick) {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "Profile",
-                tint = Color(0xFF1B5E20), // Icono más oscuro
-                modifier = Modifier.size(40.dp)
-            )
-        }
     }
     Spacer(modifier = Modifier.height(16.dp))
-    Text("El Bosque", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold, color = Color(0xFF1B5E20))
+    Text("Hola, $userName", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold, color = Color(0xFF1B5E20))
     Text("Explora la farmacia viviente.", style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray)
 }
 
@@ -152,7 +144,7 @@ fun CategoryList(categories: List<String>, selectedCategory: String, onCategoryC
 }
 
 @Composable
-fun PlantGrid(plants: List<Plant>, onPlantClick: (String) -> Unit) {
+fun PlantGrid(plants: List<Plant>, onPlantClick: (String) -> Unit, viewModel: PlantViewModel) {
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
         verticalItemSpacing = 16.dp,
@@ -160,13 +152,15 @@ fun PlantGrid(plants: List<Plant>, onPlantClick: (String) -> Unit) {
         modifier = Modifier.fillMaxSize()
     ) {
         items(plants) { plant ->
-            PlantCard(plant, onPlantClick)
+            PlantCard(plant, onPlantClick, viewModel)
         }
     }
 }
 
 @Composable
-fun PlantCard(plant: Plant, onPlantClick: (String) -> Unit) {
+fun PlantCard(plant: Plant, onPlantClick: (String) -> Unit, viewModel: PlantViewModel) {
+    val isSaved = viewModel.isPlantSaved(plant.name)
+
     Card(
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier.fillMaxWidth().clickable { onPlantClick(plant.name) }
@@ -186,13 +180,20 @@ fun PlantCard(plant: Plant, onPlantClick: (String) -> Unit) {
                 Text(text = plant.scientificName, color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
             }
             Surface(
-                modifier = Modifier.align(Alignment.TopEnd).padding(12.dp),
-                color = Color.White.copy(alpha = 0.3f),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+                    .clickable { viewModel.toggleSavePlant(plant.name) },
+                color = if (isSaved) Color(0xFF00C853) else Color.White.copy(alpha = 0.3f),
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.BookmarkBorder, null, tint = Color.White, modifier = Modifier.padding(6.dp).size(20.dp))
+                Icon(
+                    imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                    contentDescription = if (isSaved) "Guardado" else "No guardado",
+                    tint = Color.White,
+                    modifier = Modifier.padding(6.dp).size(20.dp)
+                )
             }
         }
     }
 }
-

@@ -11,8 +11,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Nature
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -97,6 +100,17 @@ fun PlantDetailScreen(plantName: String, viewModel: PlantViewModel, onBack: () -
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Información rápida en chips
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    InfoChip("Toxicidad: ${plant.toxicityLevel}", if(plant.toxicityLevel == "Bajo") Color(0xFFE8F5E9) else Color(0xFFFFF3E0))
+                    InfoChip(plant.conservationStatus, Color(0xFFE3F2FD))
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 DetailSectionTitle(Icons.Default.MenuBook, "Descripción")
                 Text(
                     text = plant.description,
@@ -107,10 +121,28 @@ fun PlantDetailScreen(plantName: String, viewModel: PlantViewModel, onBack: () -
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                DetailSectionTitle(Icons.Default.Nature, "Hábitat")
+                Text(
+                    text = plant.habitat,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.DarkGray
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 DetailSectionTitle(Icons.Default.MedicalServices, "Beneficios")
                 plant.benefits.forEach { benefit ->
                     BulletPoint(benefit)
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                DetailSectionTitle(Icons.Default.Warning, "Contraindicaciones")
+                Text(
+                    text = plant.contraindications,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFFD32F2F) // Rojo suave para advertencias
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -171,6 +203,22 @@ fun PlantDetailScreen(plantName: String, viewModel: PlantViewModel, onBack: () -
 }
 
 @Composable
+fun InfoChip(text: String, backgroundColor: Color) {
+    Surface(
+        color = backgroundColor,
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.DarkGray
+        )
+    }
+}
+
+@Composable
 fun DetailSectionTitle(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
         Icon(icon, contentDescription = null, tint = Color(0xFF00C853), modifier = Modifier.size(20.dp))
@@ -192,4 +240,3 @@ fun BulletPoint(text: String) {
         Text(text = text, style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray)
     }
 }
-

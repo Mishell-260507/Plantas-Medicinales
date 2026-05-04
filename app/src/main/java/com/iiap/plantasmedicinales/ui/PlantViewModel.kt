@@ -19,7 +19,9 @@ import com.iiap.plantasmedicinales.network.RetrofitInstance
 import com.iiap.plantasmedicinales.network.toDomainModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -31,7 +33,6 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
     private val auth = Firebase.auth
     private val db = Firebase.firestore
 
-    // Lista dinámica de plantas (API + Local)
     private val _allPlants = mutableStateListOf<Plant>()
     val allPlants: List<Plant> = _allPlants
 
@@ -41,6 +42,8 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
     var userName by mutableStateOf("Explorador")
     var userEmail by mutableStateOf("")
     var lastSearchQuery by mutableStateOf("")
+    
+    var selectedCategory by mutableStateOf("Todas")
 
     private val SAVED_PLANTS_KEY = stringSetPreferencesKey("saved_plants_list")
     private val USER_NAME_KEY = stringPreferencesKey("user_name")
@@ -51,6 +54,7 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
         _allPlants.addAll(PlantRepository.allPlants)
         fetchPlantsFromApi()
         loadUserData()
+        refreshUserProfileAndFavorites()
     }
 
     private fun fetchPlantsFromApi() {
@@ -62,7 +66,7 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
                     _allPlants.addAll(apiPlants.map { it.toDomainModel() })
                 }
             } catch (e: Exception) {
-                Log.e("PlantViewModel", "Error al conectar con la API: ${e.message}")
+                Log.e("PlantViewModel", "Error API: ${e.message}")
             }
         }
     }
@@ -70,7 +74,10 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
     private fun loadUserData() {
         viewModelScope.launch {
             getApplication<Application>().dataStore.data.collectLatest { preferences ->
-                userName = preferences[USER_NAME_KEY] ?: "Explorador"
+                val savedName = preferences[USER_NAME_KEY]
+                if (!savedName.isNullOrBlank() && savedName != "Explorador") {
+                    userName = savedName
+                }
                 userEmail = preferences[USER_EMAIL_KEY] ?: ""
                 lastSearchQuery = preferences[LAST_SEARCH_KEY] ?: ""
                 
@@ -81,76 +88,112 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private fun refreshUserProfileAndFavorites() {
+        val currentUser = auth.currentUser ?: return
+        
+        // Carga inicial desde el perfil de Auth (rápida)
+        if (!currentUser.displayName.isNullOrBlank()) {
+            userName = currentUser.displayName!!
+        }
+        userEmail = currentUser.email ?: ""
+
+        viewModelScope.launch {
+            try {
+                val userDoc = db.collection("users").document(currentUser.uid).get().await()
+                if (userDoc.exists()) {
+                    val name = userDoc.getString("name") ?: userName
+                    val favorites = (userDoc.get("favorites") as? List<String>)?.toSet() ?: emptySet()
+                    
+                    userName = name
+                    getApplication<Application>().dataStore.edit { prefs ->
+                        prefs[USER_NAME_KEY] = name
+                        prefs[SAVED_PLANTS_KEY] = favorites
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("PlantViewModel", "Sync Error: ${e.message}")
+            }
+        }
+    }
+
     fun saveUser(name: String, email: String) {
         viewModelScope.launch {
-            getApplication<Application>().dataStore.edit { preferences ->
-                preferences[USER_NAME_KEY] = name
-                preferences[USER_EMAIL_KEY] = email
-            }
+            val cleanEmail = email.trim()
             userName = name
-            userEmail = email
+            userEmail = cleanEmail
+            getApplication<Application>().dataStore.edit { 
+                it[USER_NAME_KEY] = name
+                it[USER_EMAIL_KEY] = cleanEmail 
+            }
             
-            auth.currentUser?.uid?.let { uid ->
+            auth.currentUser?.let { user ->
                 try {
-                    db.collection("users").document(uid).update(
-                        mapOf(
-                            "name" to name,
-                            "email" to email
-                        )
+                    val profileUpdates = UserProfileChangeRequest.Builder().setDisplayName(name).build()
+                    user.updateProfile(profileUpdates).await()
+                    db.collection("users").document(user.uid).set(
+                        mapOf("name" to name, "email" to cleanEmail),
+                        SetOptions.merge()
                     ).await()
                 } catch (e: Exception) {
-                    Log.e("FirebaseUpdate", "Error al actualizar en Firestore: ${e.message}")
+                    Log.e("FirebaseUpdate", "Error: ${e.message}")
                 }
             }
         }
     }
 
-    fun signUpAndSaveUser(
-        name: String, 
-        email: String, 
-        pass: String, 
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
+    fun signIn(email: String, pass: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                // 1. Crear usuario en Firebase Authentication
-                val result = auth.createUserWithEmailAndPassword(email, pass).await()
-                val uid = result.user?.uid ?: throw Exception("No se pudo obtener el ID de usuario")
+                val result = auth.signInWithEmailAndPassword(email.trim(), pass).await()
+                val user = result.user ?: throw Exception("User null")
+                
+                userName = user.displayName ?: "Explorador"
+                userEmail = user.email ?: email.trim()
+                
+                refreshUserProfileAndFavorites()
+                onSuccess()
+            } catch (e: Exception) {
+                onError("Correo o contraseña incorrectos.")
+            }
+        }
+    }
 
-                // 2. Intentar guardar en Firestore, pero no bloquear el inicio si falla
-                try {
-                    val userMap = hashMapOf(
-                        "uid" to uid,
-                        "name" to name,
-                        "email" to email,
-                        "createdAt" to System.currentTimeMillis()
-                    )
-                    db.collection("users").document(uid).set(userMap).await()
-                } catch (e: Exception) {
-                    Log.e("FirebaseFirestore", "Error al guardar perfil, pero el usuario se creó: ${e.message}")
-                    // No lanzamos error aquí para permitir el inicio de sesión local
-                }
-
-                // 3. Guardar localmente en DataStore
-                getApplication<Application>().dataStore.edit { preferences ->
-                    preferences[USER_NAME_KEY] = name
-                    preferences[USER_EMAIL_KEY] = email
-                }
+    fun signUpAndSaveUser(name: String, email: String, pass: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val cleanEmail = email.trim()
+                val result = auth.createUserWithEmailAndPassword(cleanEmail, pass).await()
+                val user = result.user ?: throw Exception("Error al crear cuenta")
+                
+                // Guardar nombre en el perfil de Auth inmediatamente
+                val profileUpdates = UserProfileChangeRequest.Builder().setDisplayName(name).build()
+                user.updateProfile(profileUpdates).await()
                 
                 userName = name
-                userEmail = email
-                onSuccess()
+                userEmail = cleanEmail
 
-            } catch (e: Exception) {
-                val errorMsg = when {
-                    e.message?.contains("email address is badly formatted") == true -> "Correo mal escrito"
-                    e.message?.contains("already in use") == true -> "Este correo ya está registrado"
-                    e.message?.contains("network error") == true -> "Error de red, revisa tu internet"
-                    else -> "Error: ${e.localizedMessage}"
+                // Intentar guardar en Firestore (si falla aquí por reglas, no bloqueamos el éxito)
+                try {
+                    val userMap = hashMapOf(
+                        "uid" to user.uid, 
+                        "name" to name, 
+                        "email" to cleanEmail, 
+                        "favorites" to emptyList<String>()
+                    )
+                    db.collection("users").document(user.uid).set(userMap).await()
+                } catch (e: Exception) {
+                    Log.e("FirestoreCreate", "Fallo al crear doc, se creará al guardar favoritos")
                 }
-                Log.e("FirebaseRegister", "Error: ${e.message}")
-                onError(errorMsg)
+
+                getApplication<Application>().dataStore.edit { 
+                    it[USER_NAME_KEY] = name
+                    it[USER_EMAIL_KEY] = cleanEmail
+                    it[SAVED_PLANTS_KEY] = emptySet()
+                }
+                onSuccess()
+            } catch (e: Exception) {
+                val msg = if (e.message?.contains("already in use") == true) "Este correo ya está registrado" else e.localizedMessage
+                onError(msg ?: "Error al registrar")
             }
         }
     }
@@ -158,29 +201,36 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
     fun saveLastSearch(query: String) {
         if (query.isBlank()) return
         viewModelScope.launch {
-            getApplication<Application>().dataStore.edit { preferences ->
-                preferences[LAST_SEARCH_KEY] = query
-            }
             lastSearchQuery = query
+            getApplication<Application>().dataStore.edit { it[LAST_SEARCH_KEY] = query }
         }
     }
 
     fun toggleSavePlant(plantName: String) {
         viewModelScope.launch {
+            var updatedFavorites: Set<String> = emptySet()
+            
             getApplication<Application>().dataStore.edit { preferences ->
                 val currentSet = preferences[SAVED_PLANTS_KEY]?.toMutableSet() ?: mutableSetOf()
-                if (currentSet.contains(plantName)) {
-                    currentSet.remove(plantName)
-                } else {
-                    currentSet.add(plantName)
-                }
+                if (currentSet.contains(plantName)) currentSet.remove(plantName) else currentSet.add(plantName)
                 preferences[SAVED_PLANTS_KEY] = currentSet
+                updatedFavorites = currentSet
+            }
+            
+            auth.currentUser?.let { user ->
+                try {
+                    db.collection("users").document(user.uid).set(
+                        mapOf("favorites" to updatedFavorites.toList(), "name" to userName, "email" to userEmail),
+                        SetOptions.merge()
+                    ).await()
+                } catch (e: Exception) {
+                    Log.e("FirestoreSync", "Error: ${e.message}")
+                }
             }
         }
     }
 
     fun isPlantSaved(plantName: String): Boolean = _savedPlantNames.contains(plantName)
-
     fun getSavedPlants(): List<Plant> = _allPlants.filter { _savedPlantNames.contains(it.name) }
 
     fun logout() {
@@ -190,7 +240,7 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
             userName = "Explorador"
             userEmail = ""
             lastSearchQuery = ""
+            _savedPlantNames.clear()
         }
     }
 }
-

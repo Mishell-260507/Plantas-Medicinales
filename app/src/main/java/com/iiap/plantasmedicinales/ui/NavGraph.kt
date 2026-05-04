@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.google.firebase.auth.FirebaseAuth
 import com.iiap.plantasmedicinales.ui.detail.PlantDetailScreen
 import com.iiap.plantasmedicinales.ui.login.LoginScreen
 
@@ -21,10 +22,14 @@ sealed class Screen(val route: String) {
 @Composable
 fun NavGraph(navController: NavHostController) {
     val plantViewModel: PlantViewModel = viewModel()
+    
+    // Verificamos si hay un usuario logueado en Firebase
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    val startRoute = if (currentUser != null) Screen.Main.route else Screen.Login.route
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Main.route // INICIA DIRECTAMENTE AQUÍ
+        startDestination = startRoute
     ) {
         composable(Screen.Login.route) {
             LoginScreen(
@@ -44,12 +49,13 @@ fun NavGraph(navController: NavHostController) {
                 },
                 onLogout = {
                     plantViewModel.logout()
-                    // Ahora al cerrar sesión simplemente te lleva al login sin bloquear la app
-                    navController.navigate(Screen.Login.route)
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Main.route) { inclusive = true }
+                    }
                 },
                 onProfileClick = {
-                    // Acción para ir al perfil o login desde el icono
-                    navController.navigate(Screen.Login.route)
+                    // Acción para ir al perfil
+                    // Aquí podrías navegar a una pantalla de perfil si la tienes
                 }
             )
         }
@@ -68,4 +74,3 @@ fun NavGraph(navController: NavHostController) {
         }
     }
 }
-
