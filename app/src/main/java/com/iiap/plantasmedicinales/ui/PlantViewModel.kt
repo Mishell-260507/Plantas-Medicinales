@@ -14,9 +14,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.iiap.plantasmedicinales.data.Plant
-import com.iiap.plantasmedicinales.data.PlantRepository
 import com.iiap.plantasmedicinales.network.RetrofitInstance
-import com.iiap.plantasmedicinales.network.toDomainModel
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -51,22 +49,27 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
     private val LAST_SEARCH_KEY = stringPreferencesKey("last_search")
 
     init {
-        _allPlants.addAll(PlantRepository.allPlants)
         fetchPlantsFromApi()
         loadUserData()
         refreshUserProfileAndFavorites()
     }
 
-    private fun fetchPlantsFromApi() {
+    fun fetchPlantsFromApi() {
         viewModelScope.launch {
             try {
+                Log.d("PlantViewModel", "Iniciando petición al API...")
+                // Corregido: La respuesta de la API ya es una List<Plant>
                 val apiPlants = RetrofitInstance.api.getPlants()
+                Log.d("PlantViewModel", "API recibida: ${apiPlants.size} plantas")
+                
                 if (apiPlants.isNotEmpty()) {
                     _allPlants.clear()
-                    _allPlants.addAll(apiPlants.map { it.toDomainModel() })
+                    _allPlants.addAll(apiPlants)
+                } else {
+                    Log.w("PlantViewModel", "El API devolvió una lista vacía")
                 }
             } catch (e: Exception) {
-                Log.e("PlantViewModel", "Error API: ${e.message}")
+                Log.e("PlantViewModel", "Error API: ${e.message}", e)
             }
         }
     }
@@ -91,7 +94,6 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
     private fun refreshUserProfileAndFavorites() {
         val currentUser = auth.currentUser ?: return
         
-        // Carga inicial desde el perfil de Auth (rápida)
         if (!currentUser.displayName.isNullOrBlank()) {
             userName = currentUser.displayName!!
         }
@@ -102,7 +104,8 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
                 val userDoc = db.collection("users").document(currentUser.uid).get().await()
                 if (userDoc.exists()) {
                     val name = userDoc.getString("name") ?: userName
-                    val favorites = (userDoc.get("favorites") as? List<String>)?.toSet() ?: emptySet()
+                    val favoritesList = userDoc.get("favorites") as? List<*>
+                    val favorites = favoritesList?.filterIsInstance<String>()?.toSet() ?: emptySet()
                     
                     userName = name
                     getApplication<Application>().dataStore.edit { prefs ->
@@ -165,14 +168,12 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
                 val result = auth.createUserWithEmailAndPassword(cleanEmail, pass).await()
                 val user = result.user ?: throw Exception("Error al crear cuenta")
                 
-                // Guardar nombre en el perfil de Auth inmediatamente
                 val profileUpdates = UserProfileChangeRequest.Builder().setDisplayName(name).build()
                 user.updateProfile(profileUpdates).await()
                 
                 userName = name
                 userEmail = cleanEmail
 
-                // Intentar guardar en Firestore (si falla aquí por reglas, no bloqueamos el éxito)
                 try {
                     val userMap = hashMapOf(
                         "uid" to user.uid, 
@@ -182,7 +183,7 @@ class PlantViewModel(application: Application) : AndroidViewModel(application) {
                     )
                     db.collection("users").document(user.uid).set(userMap).await()
                 } catch (e: Exception) {
-                    Log.e("FirestoreCreate", "Fallo al crear doc, se creará al guardar favoritos")
+                    Log.e("FirestoreCreate", "Fallo al crear doc")
                 }
 
                 getApplication<Application>().dataStore.edit { 

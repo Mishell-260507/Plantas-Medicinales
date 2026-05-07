@@ -37,7 +37,7 @@ fun SearchScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {})
     } else {
         allPlants.filter { plant ->
             plant.name.contains(query, ignoreCase = true) || 
-            plant.scientificName.contains(query, ignoreCase = true) ||
+            (plant.scientificName?.contains(query, ignoreCase = true) ?: false) ||
             plant.ethnomedicinal.contains(query, ignoreCase = true)
         }
     }
@@ -147,15 +147,15 @@ fun SearchResultCard(plant: Plant, onClick: (String) -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = plant.imageUrl,
+                model = plant.fullImageUrl,
                 contentDescription = plant.name,
-                modifier = Modifier.size(60.dp).clip(RoundedCornerShape(12.dp)),
+                modifier = Modifier.size(60.dp).clip(RoundedCornerShape(12.dp)).background(Color.LightGray),
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = plant.name, fontWeight = FontWeight.Bold, color = Color.Black)
-                Text(text = plant.scientificName, fontSize = 12.sp, color = Color(0xFF388E3C))
+                Text(text = plant.scientificName ?: "", fontSize = 12.sp, color = Color(0xFF388E3C))
             }
             Icon(Icons.Default.LocalHospital, null, tint = Color(0xFFC8E6C9))
         }

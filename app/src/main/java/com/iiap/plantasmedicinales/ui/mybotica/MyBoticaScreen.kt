@@ -1,6 +1,5 @@
 package com.iiap.plantasmedicinales.ui.mybotica
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,15 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.iiap.plantasmedicinales.data.Plant
 import com.iiap.plantasmedicinales.ui.PlantViewModel
-import com.iiap.plantasmedicinales.ui.theme.PlantasMedicinalesTheme
 
 @Composable
 fun MyBoticaScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}) {
@@ -114,21 +110,26 @@ fun SavedPlantItem(plant: Plant, onPlantClick: (String) -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = plant.imageUrl,
+                model = plant.fullImageUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .size(64.dp)
-                    .clip(RoundedCornerShape(12.dp)),
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.LightGray),
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(plant.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(plant.scientificName, fontSize = 12.sp, color = Color.Gray, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                Text(
+                    text = plant.scientificName ?: "",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                )
             }
             Icon(Icons.Default.Bookmark, contentDescription = "Guardado", tint = Color(0xFF00C853))
             Icon(Icons.Default.ChevronRight, contentDescription = "Detalle", tint = Color.LightGray)
         }
     }
 }
-

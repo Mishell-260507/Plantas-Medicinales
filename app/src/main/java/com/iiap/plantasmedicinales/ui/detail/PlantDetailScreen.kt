@@ -61,9 +61,10 @@ fun PlantDetailScreen(plantName: String, viewModel: PlantViewModel, onBack: () -
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(280.dp)
+                    .background(Color.LightGray)
             ) {
                 AsyncImage(
-                    model = plant.imageUrl,
+                    model = plant.fullImageUrl,
                     contentDescription = plant.name,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
@@ -79,9 +80,9 @@ fun PlantDetailScreen(plantName: String, viewModel: PlantViewModel, onBack: () -
                 // Estructura de Tabla tipo IIAP
                 InfoRow(t.getString("label_code"), plant.code)
                 InfoRow(t.getString("label_common_name"), plant.name)
-                InfoRow(t.getString("label_synonyms"), plant.commonSynonyms)
+                InfoRow(t.getString("label_synonyms"), plant.synonyms)
                 InfoRow(t.getString("label_scientific_name"), plant.scientificName)
-                InfoRow(t.getString("label_family"), plant.family)
+                InfoRow(t.getString("label_family"), plant.family?.name)
                 InfoRow(t.getString("label_description"), plant.description)
                 InfoRow(t.getString("label_habitat"), plant.habitat)
                 InfoRow(t.getString("label_distribution"), plant.distribution)
@@ -89,10 +90,10 @@ fun PlantDetailScreen(plantName: String, viewModel: PlantViewModel, onBack: () -
                 InfoRow(t.getString("label_toxicity"), plant.toxicity)
                 InfoRow(t.getString("label_ethnomedicinal"), plant.ethnomedicinal)
                 InfoRow(t.getString("label_preparation"), plant.preparation)
-                InfoRow(t.getString("label_adverse_effects"), plant.adverseEffects)
+                InfoRow(t.getString("label_adverse_effects"), plant.interactions)
                 InfoRow(t.getString("label_other_uses"), plant.otherUses)
-                InfoRow(t.getString("label_voucher"), plant.voucher)
-                InfoRow(t.getString("label_bibliography"), plant.bibliography)
+                InfoRow(t.getString("label_voucher"), plant.vaucher)
+                InfoRow(t.getString("label_bibliography"), plant.bibliographicReferences)
                 
                 Spacer(modifier = Modifier.height(32.dp))
             }
@@ -101,8 +102,8 @@ fun PlantDetailScreen(plantName: String, viewModel: PlantViewModel, onBack: () -
 }
 
 @Composable
-fun InfoRow(label: String, value: String) {
-    if (value.isNotBlank() && value != "null") {
+fun InfoRow(label: String, value: String?) {
+    if (!value.isNullOrBlank() && value != "null") {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

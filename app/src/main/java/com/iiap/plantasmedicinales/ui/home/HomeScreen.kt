@@ -34,7 +34,6 @@ fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}) {
     var searchQuery by remember { mutableStateOf("") }
     val t = TranslationManager
     
-    // Categorías traducidas
     val categories = listOf(
         t.getString("category_all"),
         t.getString("category_fever"),
@@ -46,7 +45,7 @@ fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}) {
 
     val filteredPlants = allPlants.filter { plant ->
         val matchesSearch = plant.name.contains(searchQuery, ignoreCase = true) || 
-                          plant.scientificName.contains(searchQuery, ignoreCase = true) ||
+                          (plant.scientificName?.contains(searchQuery, ignoreCase = true) ?: false) ||
                           plant.ethnomedicinal.contains(searchQuery, ignoreCase = true)
         
         val matchesCategory = viewModel.selectedCategory == t.getString("category_all") || 
@@ -182,18 +181,29 @@ fun PlantCard(plant: Plant, onPlantClick: (String) -> Unit, viewModel: PlantView
         modifier = Modifier.fillMaxWidth().clickable { onPlantClick(plant.name) }
     ) {
         Box(modifier = Modifier.height(if (plant.name.length > 10) 220.dp else 180.dp)) {
-            AsyncImage(
-                model = plant.imageUrl,
-                contentDescription = plant.name,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-            Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
+            if (!plant.fullImageUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = plant.fullImageUrl,
+                    contentDescription = plant.name,
+                    modifier = Modifier.fillMaxSize().background(Color(0xFFF1F8E9)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxSize().background(Color(0xFFE8F5E9)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Eco, contentDescription = null, tint = Color(0xFF81C784), modifier = Modifier.size(48.dp))
+                }
+            }
+            Box(modifier = Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Brush.verticalGradient(
+                listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f))
+            )))
             Column(
                 modifier = Modifier.align(Alignment.BottomStart).padding(16.dp)
             ) {
-                Text(text = plant.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text(text = plant.scientificName, color = Color.White.copy(alpha = 0.8f), fontSize = 12.sp)
+                Text(text = plant.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(text = plant.scientificName ?: "", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, maxLines = 1)
             }
             Surface(
                 modifier = Modifier
@@ -205,7 +215,7 @@ fun PlantCard(plant: Plant, onPlantClick: (String) -> Unit, viewModel: PlantView
             ) {
                 Icon(
                     imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                    contentDescription = if (isSaved) t.getString("saved_status") else t.getString("not_saved_status"),
+                    contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.padding(6.dp).size(20.dp)
                 )
