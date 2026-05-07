@@ -16,21 +16,22 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
+import com.iiap.plantasmedicinales.util.TranslationManager
 
 class MainActivity : ComponentActivity() {
 
-    // Definimos las variables para Auth y Firestore
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Inicializar Traducciones
+        TranslationManager.loadTranslations(this, "es")
 
-        // Inicializamos Firebase usando la sintaxis moderna
         auth = Firebase.auth
         db = Firebase.firestore
 
-        // Prueba rápida: ¿Está bien conectado?
         val user = auth.currentUser
         if (user == null) {
             Log.d("FirebaseTest", "Firebase conectado correctamente: Listo para autenticar")
@@ -49,4 +50,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-

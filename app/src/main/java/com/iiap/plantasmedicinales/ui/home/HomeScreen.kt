@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Eco
@@ -20,31 +19,39 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.iiap.plantasmedicinales.data.Plant
-import com.iiap.plantasmedicinales.data.PlantRepository
 import com.iiap.plantasmedicinales.ui.PlantViewModel
-import com.iiap.plantasmedicinales.ui.theme.PlantasMedicinalesTheme
+import com.iiap.plantasmedicinales.util.TranslationManager
 
 @Composable
 fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}) {
     var searchQuery by remember { mutableStateOf("") }
+    val t = TranslationManager
     
-    val categories = listOf("Todas", "Fiebre", "Estómago", "Piel", "Energía")
+    // Categorías traducidas
+    val categories = listOf(
+        t.getString("category_all"),
+        t.getString("category_fever"),
+        t.getString("category_stomach"),
+        t.getString("category_skin"),
+        t.getString("category_energy")
+    )
     val allPlants = viewModel.allPlants
 
     val filteredPlants = allPlants.filter { plant ->
         val matchesSearch = plant.name.contains(searchQuery, ignoreCase = true) || 
                           plant.scientificName.contains(searchQuery, ignoreCase = true) ||
-                          plant.ailments.any { it.contains(searchQuery, ignoreCase = true) }
-        val matchesCategory = viewModel.selectedCategory == "Todas" || plant.category == viewModel.selectedCategory
+                          plant.ethnomedicinal.contains(searchQuery, ignoreCase = true)
+        
+        val matchesCategory = viewModel.selectedCategory == t.getString("category_all") || 
+                            plant.category == viewModel.selectedCategory
+
         matchesSearch && matchesCategory
     }
 
@@ -53,13 +60,13 @@ fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}) {
             .fillMaxSize()
             .padding(horizontal = 24.dp)
     ) {
-        HomeHeader(userName = viewModel.userName)
+        HomeHeader(userName = viewModel.userName, t = t)
         Spacer(modifier = Modifier.height(24.dp))
         
-        // BARRA DE BÚSQUEDA CON ALTO CONTRASTE
         SearchBar(
             query = searchQuery, 
-            onQueryChange = { searchQuery = it }
+            onQueryChange = { searchQuery = it },
+            placeholder = t.getString("search_placeholder")
         )
         
         Spacer(modifier = Modifier.height(24.dp))
@@ -72,16 +79,16 @@ fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}) {
         
         if (filteredPlants.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "No se encontraron plantas", color = Color.DarkGray)
+                Text(text = t.getString("no_results"), color = Color.DarkGray)
             }
         } else {
-            PlantGrid(filteredPlants, onPlantClick, viewModel)
+            PlantGrid(filteredPlants, onPlantClick, viewModel, t)
         }
     }
 }
 
 @Composable
-fun HomeHeader(userName: String) {
+fun HomeHeader(userName: String, t: TranslationManager) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -97,16 +104,25 @@ fun HomeHeader(userName: String) {
         )
     }
     Spacer(modifier = Modifier.height(16.dp))
-    Text("Hola, $userName", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold, color = Color(0xFF1B5E20))
-    Text("Explora la farmacia viviente.", style = MaterialTheme.typography.bodyMedium, color = Color.DarkGray)
+    Text(
+        text = t.getString("hello_user").format(userName),
+        style = MaterialTheme.typography.headlineLarge,
+        fontWeight = FontWeight.Bold,
+        color = Color(0xFF1B5E20)
+    )
+    Text(
+        text = t.getString("explore_subtitle"),
+        style = MaterialTheme.typography.bodyMedium,
+        color = Color.DarkGray
+    )
 }
 
 @Composable
-fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
+fun SearchBar(query: String, onQueryChange: (String) -> Unit, placeholder: String) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        placeholder = { Text("Busca una dolencia o planta...", color = Color.Gray) },
+        placeholder = { Text(placeholder, color = Color.Gray) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF1B5E20)) },
         modifier = Modifier.fillMaxWidth().height(56.dp),
         singleLine = true,
@@ -116,7 +132,7 @@ fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
             focusedContainerColor = Color(0xFFF5F5F5),
             unfocusedBorderColor = Color(0xFFC8E6C9),
             focusedBorderColor = Color(0xFF1B5E20),
-            focusedTextColor = Color.Black, // Texto negro al escribir
+            focusedTextColor = Color.Black,
             unfocusedTextColor = Color.Black
         )
     )
@@ -135,7 +151,7 @@ fun CategoryList(categories: List<String>, selectedCategory: String, onCategoryC
                 Text(
                     text = category,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                    color = if (isSelected) Color.White else Color(0xFF1B5E20), // Texto oscuro si no está seleccionado
+                    color = if (isSelected) Color.White else Color(0xFF1B5E20),
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -144,7 +160,7 @@ fun CategoryList(categories: List<String>, selectedCategory: String, onCategoryC
 }
 
 @Composable
-fun PlantGrid(plants: List<Plant>, onPlantClick: (String) -> Unit, viewModel: PlantViewModel) {
+fun PlantGrid(plants: List<Plant>, onPlantClick: (String) -> Unit, viewModel: PlantViewModel, t: TranslationManager) {
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
         verticalItemSpacing = 16.dp,
@@ -152,13 +168,13 @@ fun PlantGrid(plants: List<Plant>, onPlantClick: (String) -> Unit, viewModel: Pl
         modifier = Modifier.fillMaxSize()
     ) {
         items(plants) { plant ->
-            PlantCard(plant, onPlantClick, viewModel)
+            PlantCard(plant, onPlantClick, viewModel, t)
         }
     }
 }
 
 @Composable
-fun PlantCard(plant: Plant, onPlantClick: (String) -> Unit, viewModel: PlantViewModel) {
+fun PlantCard(plant: Plant, onPlantClick: (String) -> Unit, viewModel: PlantViewModel, t: TranslationManager) {
     val isSaved = viewModel.isPlantSaved(plant.name)
 
     Card(
@@ -189,7 +205,7 @@ fun PlantCard(plant: Plant, onPlantClick: (String) -> Unit, viewModel: PlantView
             ) {
                 Icon(
                     imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                    contentDescription = if (isSaved) "Guardado" else "No guardado",
+                    contentDescription = if (isSaved) t.getString("saved_status") else t.getString("not_saved_status"),
                     tint = Color.White,
                     modifier = Modifier.padding(6.dp).size(20.dp)
                 )

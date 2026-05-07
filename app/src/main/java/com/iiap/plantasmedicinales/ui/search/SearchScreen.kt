@@ -5,11 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ManageSearch
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
@@ -22,19 +19,18 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.iiap.plantasmedicinales.data.Plant
-import com.iiap.plantasmedicinales.data.PlantRepository
 import com.iiap.plantasmedicinales.ui.PlantViewModel
+import com.iiap.plantasmedicinales.util.TranslationManager
 
 @Composable
 fun SearchScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}) {
     var query by remember { mutableStateOf("") }
-    // Usamos PlantRepository directamente para asegurar que los datos existan
-    val allPlants = PlantRepository.allPlants
+    val t = TranslationManager
+    val allPlants = viewModel.allPlants
     
     val filteredResults = if (query.isEmpty()) {
         emptyList()
@@ -42,7 +38,7 @@ fun SearchScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {})
         allPlants.filter { plant ->
             plant.name.contains(query, ignoreCase = true) || 
             plant.scientificName.contains(query, ignoreCase = true) ||
-            plant.ailments.any { it.contains(query, ignoreCase = true) }
+            plant.ethnomedicinal.contains(query, ignoreCase = true)
         }
     }
 
@@ -64,13 +60,13 @@ fun SearchScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {})
         ) {
             Column {
                 Text(
-                    text = "Explora y Busca",
+                    text = t.getString("explore_search_title"),
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF1B5E20)
                 )
                 Text(
-                    text = "Encuentra alivio natural",
+                    text = t.getString("explore_search_subtitle"),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color(0xFF388E3C)
                 )
@@ -80,7 +76,7 @@ fun SearchScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {})
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
-                    placeholder = { Text("Síntoma, planta...", color = Color.Gray) },
+                    placeholder = { Text(t.getString("search_placeholder"), color = Color.Gray) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF1B5E20)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -101,21 +97,21 @@ fun SearchScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {})
             if (query.isEmpty()) {
                 // SECCIÓN: ÚLTIMA BÚSQUEDA
                 if (viewModel.lastSearchQuery.isNotEmpty()) {
-                    Text("Continuar buscando", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text(t.getString("continue_searching"), fontWeight = FontWeight.Bold, color = Color.Black)
                     Spacer(modifier = Modifier.height(8.dp))
                     SuggestionChip(text = viewModel.lastSearchQuery, onClick = { query = viewModel.lastSearchQuery })
                     Spacer(modifier = Modifier.height(24.dp))
                 }
                 
-                PopularSuggestionsSection(onSuggestionClick = { 
+                PopularSuggestionsSection(t, onSuggestionClick = { 
                     query = it
                     viewModel.saveLastSearch(it)
                 })
             } else if (filteredResults.isEmpty()) {
-                EmptyState()
+                EmptyState(t)
             } else {
                 Text(
-                    text = "${filteredResults.size} plantas encontradas",
+                    text = t.getString("plants_found").replace("%d", filteredResults.size.toString()),
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     color = Color(0xFF1B5E20),
@@ -167,9 +163,9 @@ fun SearchResultCard(plant: Plant, onClick: (String) -> Unit) {
 }
 
 @Composable
-fun PopularSuggestionsSection(onSuggestionClick: (String) -> Unit) {
+fun PopularSuggestionsSection(t: TranslationManager, onSuggestionClick: (String) -> Unit) {
     Column {
-        Text("Sugerencias populares", fontWeight = FontWeight.Bold, color = Color.Black)
+        Text(t.getString("popular_suggestions"), fontWeight = FontWeight.Bold, color = Color.Black)
         Spacer(modifier = Modifier.height(12.dp))
         val suggestions = listOf("Gripe", "Gases", "Insomnio", "Piel", "Estrés")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -198,12 +194,11 @@ fun SuggestionChip(text: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun EmptyState() {
+fun EmptyState(t: TranslationManager) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(Icons.Default.Warning, null, modifier = Modifier.size(48.dp), tint = Color.LightGray)
-            Text("No hay resultados", color = Color.Gray)
+            Text(t.getString("no_results_search"), color = Color.Gray)
         }
     }
 }
-
