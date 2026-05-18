@@ -33,15 +33,22 @@ import com.iiap.plantasmedicinales.util.TranslationManager
 fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}) {
     var searchQuery by remember { mutableStateOf("") }
     val t = TranslationManager
-    
-    val categories = listOf(
-        t.getString("category_all"),
-        t.getString("category_fever"),
-        t.getString("category_stomach"),
-        t.getString("category_skin"),
-        t.getString("category_energy")
-    )
     val allPlants = viewModel.allPlants
+    
+    val categories = remember(allPlants) {
+        val base = listOf(t.getString("category_all"))
+        val extracted = allPlants
+            .flatMap { it.ethnomedicinalUses?.split(Regex("[,;.\\n]")) ?: emptyList() }
+            .map { it.trim().lowercase().replaceFirstChar { char -> char.uppercase() } }
+            .filter { it.length > 3 && it.length < 25 }
+            .groupingBy { it }
+            .eachCount()
+            .toList()
+            .sortedByDescending { it.second }
+            .take(15)
+            .map { it.first }
+        base + extracted
+    }
 
     val filteredPlants = allPlants.filter { plant ->
         val matchesSearch = plant.name.contains(searchQuery, ignoreCase = true) || 
@@ -49,7 +56,7 @@ fun HomeScreen(viewModel: PlantViewModel, onPlantClick: (String) -> Unit = {}) {
                           plant.ethnomedicinal.contains(searchQuery, ignoreCase = true)
         
         val matchesCategory = viewModel.selectedCategory == t.getString("category_all") || 
-                            plant.category == viewModel.selectedCategory
+                            plant.ethnomedicinal.contains(viewModel.selectedCategory, ignoreCase = true)
 
         matchesSearch && matchesCategory
     }

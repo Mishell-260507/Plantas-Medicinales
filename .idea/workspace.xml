@@ -22,15 +22,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd08ad94-584f-422a-bf26-1d2141393a30" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gradle/9.2.1/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.2.1/executionHistory/executionHistory.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.2.1/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.2.1/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/file-system.probe" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/file-system.probe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/data/Plant.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/data/Plant.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/data/PlantRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/data/PlantRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/network/ApiService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/network/ApiService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/ui/PlantViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/ui/PlantViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/ui/detail/PlantDetailScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/ui/detail/PlantDetailScreen.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/ui/home/HomeScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/ui/home/HomeScreen.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/ui/mybotica/MyBoticaScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/ui/mybotica/MyBoticaScreen.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/ui/search/SearchScreen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/iiap/plantasmedicinales/ui/search/SearchScreen.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,12 +70,12 @@
     &quot;assignee&quot;: &quot;Mishell-260507&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/Mishell-260507/Plantas-Medicinales.git&quot;,
-    &quot;accountId&quot;: &quot;3d9651a3-bf13-4cb6-832a-e1d49d2ad935&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Mishell-260507/Plantas-Medicinales.git",
+    "accountId": "a38d58c7-0719-4e4b-9b88-fb46fb906bf0"
   }
-}</component>
+}]]></component>
   <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="C:\Users\USUARIO\.gradle\wrapper\dists\gradle-9.2.1-bin\2t0n5ozlw9xmuyvbp7dnzaxug\gradle-9.2.1" javaHome="C:\Program Files\Android\Android Studio\jbr" gradleVersion="9.2.1" />
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
